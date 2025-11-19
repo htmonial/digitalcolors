@@ -1,1 +1,134 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<title>Digital Colors</title>
+<style>
+body { font-family: sans-serif; text-align: center; }
+#colorInput { margin: 10px; }
+#bars { display: flex; flex-direction: column; width: 100%; margin-top: 20px; }
+.bar { flex: 1; }
+canvas { border: none #000; margin-top: 20px; }
+</style>
+</head>
+<body>
+<h1>Submit one color per person</h1>
+
+<input type="color" id="colorPicker">
+<input type="text" id="colorText" placeholder="#RRGGBB">
+<button id="submitColor">Submit color</button>
+<button id="downloadBtn">Download PNG</button>
+
+<div id="bars"></div>
+<canvas id="canvas"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/tinycolor2@1.6.0/dist/tinycolor-min.js"></script>
+<script>
+const colorPicker = document.getElementById('colorPicker');
+const colorText = document.getElementById('colorText');
+const submitBtn = document.getElementById('submitColor');
+const barsContainer = document.getElementById('bars');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// A3 størrelse i pixels (web skaleret)
+canvas.width = 1240;
+canvas.height = 1754;
+
+let colors = [];
+
+// Synkronisering af farvehjul og tekstfelt
+colorPicker.addEventListener('input', () => colorText.value = colorPicker.value);
+colorText.addEventListener('input', () => {
+    if(/^#([0-9A-Fa-f]{6})$/.test(colorText.value)) colorPicker.value = colorText.value;
+});
+
+// Fetch colors.json
+async function fetchColors() {
+    const res = await fetch('/colors');
+    colors = await res.json();
+    renderBars();
+}
+
+// Konverter hex til RGB
+function hexToRgb(hex) {
+    return tinycolor(hex).toRgb();
+}
+
+// Perceptuel sortering (Euclidean RGB distance)
+function sortColors(colors) {
+    if(colors.length <= 1) return colors;
+    const sorted = [colors[0]];
+    let remaining = colors.slice(1);
+    while(remaining.length > 0) {
+        const last = sorted[sorted.length-1];
+        let closestIndex = 0;
+        let minDist = Infinity;
+        const lastRgb = hexToRgb(last);
+        remaining.forEach((c, i) => {
+            const rgb = hexToRgb(c);
+            const dist = Math.sqrt(
+                (rgb.r - lastRgb.r)**2 +
+                (rgb.g - lastRgb.g)**2 +
+                (rgb.b - lastRgb.b)**2
+            );
+            if(dist < minDist){ minDist = dist; closestIndex = i; }
+        });
+        sorted.push(remaining[closestIndex]);
+        remaining.splice(closestIndex,1);
+    }
+    return sorted;
+}
+
+// Render bjælker og canvas
+function renderBars() {
+    barsContainer.innerHTML = '';
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let sorted = sortColors(colors);
+    let barHeight = canvas.height / sorted.length;
+    sorted.forEach((color,i)=>{
+        // HTML
+        const div = document.createElement('div');
+        div.className='bar';
+        div.style.background=color;
+        barsContainer.appendChild(div);
+        // Canvas
+        ctx.fillStyle = color;
+        ctx.fillRect(0,i*barHeight,canvas.width,barHeight);
+    });
+}
+
+// Submit farve
+submitBtn.addEventListener('click', async () => {
+    if(sessionStorage.getItem('submitted')){
+        alert("Du kan kun indsende én farve pr. session!");
+        return;
+    }
+    const newColor = colorText.value;
+    if(!/^#([0-9A-Fa-f]{6})$/.test(newColor)){
+        alert("Indtast en gyldig hex-farve!");
+        return;
+    }
+    await fetch('/colors',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({color:newColor})
+    });
+    colors.push(newColor);
+    sessionStorage.setItem('submitted','true');
+    renderBars();
+});
+
+// Download PNG
+document.getElementById('downloadBtn').addEventListener('click',()=>{
+    const link=document.createElement('a');
+    link.download='farve_ark.png';
+    link.href=canvas.toDataURL();
+    link.click();
+});
+
+fetchColors();
+</script>
+</body>
+</html>
 
