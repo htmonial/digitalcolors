@@ -9,7 +9,7 @@ app.use(express.static('public'));
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const OWNER = 'htmonial';
-const REPO = 'digital-colors';
+const REPO = 'digitalcolors';
 const FILE_PATH = 'data/colors.json'; // sti i repo
 const BRANCH = 'main';
 
