@@ -1,6 +1,6 @@
 A space for color sharing across time and space.
 
-I would like to add metadata like timestamps and possibly locations. Would also like to do so that this metadata + color codes appears as text when the hover floats across a color field on the page.
+I would like to add metadata like timestamps and possibly locations. Would also like to do so that this metadata + color codes appear as text when the hover floats across a color field on the page.
 
 And can think of so many interesting ways to reorganize the colors on the page.
 
