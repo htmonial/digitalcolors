@@ -8,4 +8,6 @@ Should there be a feature where you can choose colors added in a specific time f
 
 Should the visitor be able to scale the page to make the fields bigger / smaller?
 
+The project is also in need of a host, domain & serverwise.
+
 Published under CC BY-AS 4.0 - Attribution-ShareAlike. Find the license here: https://creativecommons.org/licenses/by-sa/4.0/
