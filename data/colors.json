@@ -1,18 +1,70 @@
 [
-  "#130040",
-  "#9effbb",
-  "#9384b0",
-  "#2b00ff",
-  "#00ffff",
-  "#B5CBB7",
-  "#d1c624",
-  "#d0fc3f",
-  "#004247",
-  "#ffff00",
-  "#8539ff",
-  "#260089",
-  "#ff86ff",
-  "#ffcb13",
-  "#ffffff",
-  "#ff6a00"
+  {
+    "color": "#130040",
+    "timestamp": null
+  },
+  {
+    "color": "#9effbb",
+    "timestamp": null
+  },
+  {
+    "color": "#9384b0",
+    "timestamp": null
+  },
+  {
+    "color": "#2b00ff",
+    "timestamp": null
+  },
+  {
+    "color": "#00ffff",
+    "timestamp": null
+  },
+  {
+    "color": "#B5CBB7",
+    "timestamp": null
+  },
+  {
+    "color": "#d1c624",
+    "timestamp": null
+  },
+  {
+    "color": "#d0fc3f",
+    "timestamp": null
+  },
+  {
+    "color": "#004247",
+    "timestamp": null
+  },
+  {
+    "color": "#ffff00",
+    "timestamp": null
+  },
+  {
+    "color": "#8539ff",
+    "timestamp": null
+  },
+  {
+    "color": "#260089",
+    "timestamp": null
+  },
+  {
+    "color": "#ff86ff",
+    "timestamp": null
+  },
+  {
+    "color": "#ffcb13",
+    "timestamp": null
+  },
+  {
+    "color": "#ffffff",
+    "timestamp": null
+  },
+  {
+    "color": "#ff6a00",
+    "timestamp": null
+  },
+  {
+    "color": "#d21414",
+    "timestamp": "2025-11-24T19:54:33.469Z"
+  }
 ]
