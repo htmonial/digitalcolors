@@ -145,12 +145,21 @@ submitBtn.addEventListener('click', async () => {
 });
 
 // Download PNG
-document.getElementById('downloadBtn').addEventListener('click',()=>{
-    const link=document.createElement('a');
-    link.download='farve_ark.png';
-    link.href=canvas.toDataURL();
+document.getElementById('downloadBtn').addEventListener('click', () => {
+    const link = document.createElement('a');
+
+    // Lav dagens dato i format YYYY-MM-DD
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // husk +1 for måneder
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
+    link.download = `digitalcolors${dateStr}.png`; // navngiv filen
+    link.href = canvas.toDataURL();
     link.click();
 });
+
 
 fetchColors();
 </script>
