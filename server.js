@@ -15,7 +15,7 @@ const BRANCH = 'main';
 
 const GITHUB_API = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
 
-// GET /colors: hent farver fra GitHub
+// GET /colors: hent farver fra GitHub og normaliser
 app.get('/colors', async (req, res) => {
   try {
     const resp = await fetch(GITHUB_API + `?ref=${BRANCH}`, {
@@ -29,7 +29,13 @@ app.get('/colors', async (req, res) => {
 
     const data = await resp.json();
     const content = base64.decode(data.content);
-    const colors = JSON.parse(content);
+    let colors = JSON.parse(content);
+
+    // Normaliser: konverter strings til objekter
+    colors = colors.map(c => {
+      if (typeof c === 'string') return { color: c, timestamp: null };
+      return c;
+    });
 
     res.json(colors);
   } catch (err) {
@@ -47,7 +53,7 @@ app.post('/colors', async (req, res) => {
   }
 
   try {
-    // Hent nuværende fil for at få content og SHA
+    // Hent nuværende fil for content og SHA
     const getResp = await fetch(GITHUB_API + `?ref=${BRANCH}`, {
       headers: {
         Authorization: `token ${GITHUB_TOKEN}`,
@@ -60,11 +66,16 @@ app.post('/colors', async (req, res) => {
     const getData = await getResp.json();
     const sha = getData.sha;
     const currentContent = base64.decode(getData.content);
-    const colors = JSON.parse(currentContent);
+    let colors = JSON.parse(currentContent);
 
-    // Tilføj ny farve som objekt med timestamp
-    const timestamp = new Date().toISOString();
-    colors.push({ color, timestamp });
+    // Normaliser eksisterende farver til objekter
+    colors = colors.map(c => {
+      if (typeof c === 'string') return { color: c, timestamp: null };
+      return c;
+    });
+
+    // Tilføj ny farve med timestamp
+    colors.push({ color, timestamp: new Date().toISOString() });
 
     // Encode og commit til GitHub
     const newContentBase64 = base64.encode(JSON.stringify(colors, null, 2));
