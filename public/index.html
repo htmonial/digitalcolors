@@ -10,8 +10,6 @@ body { font-family: sans-serif; text-align: center; }
 .bar { flex: 1; cursor: pointer; }
 canvas { border: none; margin-top: 20px; }
 a:link, a:visited, a:hover, a:active { color: black; }
-    <div id="colorInfo" style="margin-top:10px;font-weight:bold;"></div>
-
 </style>
 </head>
 <body>
@@ -23,6 +21,7 @@ a:link, a:visited, a:hover, a:active { color: black; }
 <button id="downloadBtn">Download PNG</button>
 
 <div id="bars"></div>
+<div id="colorInfo" style="margin-top:10px;font-weight:bold;"></div>
 <canvas id="canvas"></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/tinycolor2@1.6.0/dist/tinycolor-min.js"></script>
@@ -49,7 +48,8 @@ colorText.addEventListener('input', () => {
 // Fetch colors.json
 async function fetchColors() {
     const res = await fetch('/colors');
-    colors = await res.json();
+    const data = await res.json();
+    colors = data.map(c => ({ color: c.color, timestamp: c.timestamp || null })); // normaliser
     renderBars();
 }
 
@@ -67,9 +67,9 @@ function sortColors(colors) {
         const last = sorted[sorted.length-1];
         let closestIndex = 0;
         let minDist = Infinity;
-        const lastRgb = hexToRgb(last.color ? last.color : last); // tjek om objekt
+        const lastRgb = hexToRgb(last.color);
         remaining.forEach((c, i) => {
-            const rgb = hexToRgb(c.color ? c.color : c);
+            const rgb = hexToRgb(c.color);
             const dist = Math.sqrt(
                 (rgb.r - lastRgb.r)**2 +
                 (rgb.g - lastRgb.g)**2 +
@@ -90,8 +90,8 @@ function renderBars() {
     let sorted = sortColors(colors);
     let barHeight = canvas.height / sorted.length;
     sorted.forEach((c,i)=>{
-        const hex = c.color ? c.color : c;      // støtte for gamle string farver
-        const ts = c.timestamp ? c.timestamp : 'unknown';
+        const hex = c.color;
+        const ts = c.timestamp || 'unknown';
         // HTML
         const div = document.createElement('div');
         div.className='bar';
@@ -140,6 +140,5 @@ fetchColors();
 </script>
 <br>
 <p><a href="https://creativecommons.org/licenses/by-sa/4.0/">License</a> <a href="https://github.com/htmonial/digitalcolors">Repository</a> </p>
-<p></p>
 </body>
 </html>
