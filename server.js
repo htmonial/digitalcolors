@@ -31,13 +31,13 @@ app.get('/colors', async (req, res) => {
     const content = base64.decode(data.content);
     let colors = JSON.parse(content);
 
-    // Normaliser alle farver til objekter { color, timestamp }
+    // Normaliser til objekter { color, timestamp }
     const normalizedColors = colors.map(c => {
       if (typeof c === 'string') return { color: c, timestamp: null };
       return { color: c.color, timestamp: c.timestamp || null };
     });
 
-    res.json(normalizedColors); // send objekterne til frontend
+    res.json(normalizedColors);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Kunne ikke hente farver fra GitHub' });
