@@ -134,15 +134,28 @@ submitBtn.addEventListener('click', async () => {
         alert("Indtast en gyldig hex-farve!");
         return;
     }
-    await fetch('/colors',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({color:newColor})
+
+    const response = await fetch('/colors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ color: newColor })
     });
-    colors.push(newColor);
-    sessionStorage.setItem('submitted','true');
+
+    if (!response.ok) {
+        alert("Der skete en fejl med at indsende farven");
+        return;
+    }
+
+    // Push objekt med farve + timestamp (nu)
+    colors.push({
+        color: newColor,
+        timestamp: new Date().toISOString()
+    });
+
+    sessionStorage.setItem('submitted', 'true');
     renderBars();
 });
+
 
 // Download PNG
 document.getElementById('downloadBtn').addEventListener('click', () => {
