@@ -67,48 +67,61 @@ function hexToRgb(hex) {
     return tinycolor(hex).toRgb();
 }
 
-// Perceptuel sortering (Euclidean RGB distance)
+// Perceptuel sortering (Euclidean RGB distance) - til objekter med .color
 function sortColors(colors) {
     if(colors.length <= 1) return colors;
     const sorted = [colors[0]];
     let remaining = colors.slice(1);
+
     while(remaining.length > 0) {
-        const last = sorted[sorted.length-1];
+        const last = sorted[sorted.length - 1];
         let closestIndex = 0;
         let minDist = Infinity;
-        const lastRgb = hexToRgb(last);
+        const lastRgb = hexToRgb(last.color); // brug .color
+
         remaining.forEach((c, i) => {
-            const rgb = hexToRgb(c);
+            const rgb = hexToRgb(c.color); // brug .color
             const dist = Math.sqrt(
-                (rgb.r - lastRgb.r)**2 +
-                (rgb.g - lastRgb.g)**2 +
-                (rgb.b - lastRgb.b)**2
+                (rgb.r - lastRgb.r) ** 2 +
+                (rgb.g - lastRgb.g) ** 2 +
+                (rgb.b - lastRgb.b) ** 2
             );
-            if(dist < minDist){ minDist = dist; closestIndex = i; }
+            if (dist < minDist) {
+                minDist = dist;
+                closestIndex = i;
+            }
         });
+
         sorted.push(remaining[closestIndex]);
-        remaining.splice(closestIndex,1);
+        remaining.splice(closestIndex, 1);
     }
+
     return sorted;
 }
 
 // Render bjælker og canvas
 function renderBars() {
     barsContainer.innerHTML = '';
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     let sorted = sortColors(colors);
     let barHeight = canvas.height / sorted.length;
-    sorted.forEach((color,i)=>{
-        // HTML
+
+    sorted.forEach((colorObj, i) => {
+        const color = colorObj.color; // tag farven fra objektet
+
+        // HTML bjælker
         const div = document.createElement('div');
-        div.className='bar';
-        div.style.background=color;
+        div.className = 'bar';
+        div.style.background = color;
         barsContainer.appendChild(div);
+
         // Canvas
         ctx.fillStyle = color;
-        ctx.fillRect(0,i*barHeight,canvas.width,barHeight);
+        ctx.fillRect(0, i * barHeight, canvas.width, barHeight);
     });
 }
+
 
 // Submit farve
 submitBtn.addEventListener('click', async () => {
