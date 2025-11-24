@@ -5,10 +5,22 @@
 <title>Digital Colors</title>
 <style>
 body { font-family: sans-serif; text-align: center; }
+#colorInput { margin: 10px; }
 #bars { display: flex; flex-direction: column; width: 100%; margin-top: 20px; }
-.bar { flex: 1; cursor: pointer; height: 20px; margin: 1px 0; }
+.bar { flex: 1; }
 canvas { border: none; margin-top: 20px; }
-a:link, a:visited, a:hover, a:active { color: black; }
+a:link {
+  color: black;
+}
+a:visited {
+  color: black;
+}
+a:hover {
+  color: black;
+}
+a:active {
+  color: black;
+}
 </style>
 </head>
 <body>
@@ -20,7 +32,6 @@ a:link, a:visited, a:hover, a:active { color: black; }
 <button id="downloadBtn">Download PNG</button>
 
 <div id="bars"></div>
-<div id="colorInfo" style="margin-top:10px;font-weight:bold;"></div>
 <canvas id="canvas"></canvas>
 
 <script src="https://cdn.jsdelivr.net/npm/tinycolor2@1.6.0/dist/tinycolor-min.js"></script>
@@ -31,51 +42,75 @@ const submitBtn = document.getElementById('submitColor');
 const barsContainer = document.getElementById('bars');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const colorInfo = document.getElementById('colorInfo');
 
+// A3 størrelse i pixels (web skaleret)
 canvas.width = 1240;
 canvas.height = 1754;
 
 let colors = [];
 
+// Synkronisering af farvehjul og tekstfelt
 colorPicker.addEventListener('input', () => colorText.value = colorPicker.value);
 colorText.addEventListener('input', () => {
     if(/^#([0-9A-Fa-f]{6})$/.test(colorText.value)) colorPicker.value = colorText.value;
 });
 
+// Fetch colors.json
 async function fetchColors() {
     const res = await fetch('/colors');
     colors = await res.json();
     renderBars();
 }
 
+// Konverter hex til RGB
 function hexToRgb(hex) {
     return tinycolor(hex).toRgb();
 }
 
-// Simple rendering without perceptual sort
+// Perceptuel sortering (Euclidean RGB distance)
+function sortColors(colors) {
+    if(colors.length <= 1) return colors;
+    const sorted = [colors[0]];
+    let remaining = colors.slice(1);
+    while(remaining.length > 0) {
+        const last = sorted[sorted.length-1];
+        let closestIndex = 0;
+        let minDist = Infinity;
+        const lastRgb = hexToRgb(last);
+        remaining.forEach((c, i) => {
+            const rgb = hexToRgb(c);
+            const dist = Math.sqrt(
+                (rgb.r - lastRgb.r)**2 +
+                (rgb.g - lastRgb.g)**2 +
+                (rgb.b - lastRgb.b)**2
+            );
+            if(dist < minDist){ minDist = dist; closestIndex = i; }
+        });
+        sorted.push(remaining[closestIndex]);
+        remaining.splice(closestIndex,1);
+    }
+    return sorted;
+}
+
+// Render bjælker og canvas
 function renderBars() {
     barsContainer.innerHTML = '';
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    const barHeight = canvas.height / colors.length;
-
-    colors.forEach((c,i) => {
-        const hex = c.color;
-        const ts = c.timestamp || 'unknown';
-
+    let sorted = sortColors(colors);
+    let barHeight = canvas.height / sorted.length;
+    sorted.forEach((color,i)=>{
+        // HTML
         const div = document.createElement('div');
-        div.className = 'bar';
-        div.style.background = hex;
-        div.addEventListener('click', () => {
-            colorInfo.textContent = `Hex: ${hex} | Timestamp: ${ts}`;
-        });
+        div.className='bar';
+        div.style.background=color;
         barsContainer.appendChild(div);
-
-        ctx.fillStyle = hex;
+        // Canvas
+        ctx.fillStyle = color;
         ctx.fillRect(0,i*barHeight,canvas.width,barHeight);
     });
 }
 
+// Submit farve
 submitBtn.addEventListener('click', async () => {
     if(sessionStorage.getItem('submitted')){
         alert("Du kan kun indsende én farve pr. session!");
@@ -91,11 +126,12 @@ submitBtn.addEventListener('click', async () => {
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({color:newColor})
     });
-    colors.push({ color: newColor, timestamp: new Date().toISOString() });
+    colors.push(newColor);
     sessionStorage.setItem('submitted','true');
     renderBars();
 });
 
+// Download PNG
 document.getElementById('downloadBtn').addEventListener('click',()=>{
     const link=document.createElement('a');
     link.download='farve_ark.png';
@@ -105,5 +141,8 @@ document.getElementById('downloadBtn').addEventListener('click',()=>{
 
 fetchColors();
 </script>
+    <br>
+<p><a href="https://creativecommons.org/licenses/by-sa/4.0/">License</a> <a href="https://github.com/htmonial/digitalcolors">Repository</a> </p>
+<p></p>
 </body>
 </html>
