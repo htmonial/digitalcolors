@@ -10,25 +10,27 @@ app.use(express.static('public'));
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const OWNER = 'htmonial';
 const REPO = 'digitalcolors';
-const FILE_PATH = 'data/colors.json'; // sti i repo
+const FILE_PATH = 'data/colors.json';
 const BRANCH = 'main';
 
 const GITHUB_API = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
 
-// Hent farver fra GitHub
+// GET /colors: hent farver fra GitHub
 app.get('/colors', async (req, res) => {
   try {
-    // Hent filindhold & SHA
     const resp = await fetch(GITHUB_API + `?ref=${BRANCH}`, {
       headers: {
         Authorization: `token ${GITHUB_TOKEN}`,
         'User-Agent': 'node.js'
       }
     });
+
     if (!resp.ok) throw new Error('Fejl ved hent af GitHub fil: ' + resp.status);
+
     const data = await resp.json();
     const content = base64.decode(data.content);
     const colors = JSON.parse(content);
+
     res.json(colors);
   } catch (err) {
     console.error(err);
@@ -36,36 +38,37 @@ app.get('/colors', async (req, res) => {
   }
 });
 
-// Tilføj farve og opdater GitHub-fil
+// POST /colors: tilføj ny farve med timestamp
 app.post('/colors', async (req, res) => {
   const { color } = req.body;
+
   if (!/^#([0-9A-Fa-f]{6})$/.test(color)) {
     return res.status(400).json({ error: 'Invalid hex color' });
   }
 
   try {
-    // Først hent nuværende fil for at få content og SHA
+    // Hent nuværende fil for at få content og SHA
     const getResp = await fetch(GITHUB_API + `?ref=${BRANCH}`, {
       headers: {
         Authorization: `token ${GITHUB_TOKEN}`,
         'User-Agent': 'node.js'
       }
     });
+
     if (!getResp.ok) throw new Error('Kunne ikke få fil fra GitHub: ' + getResp.status);
+
     const getData = await getResp.json();
     const sha = getData.sha;
-    const currentContentBase64 = getData.content;
-    const currentContent = base64.decode(currentContentBase64);
+    const currentContent = base64.decode(getData.content);
     const colors = JSON.parse(currentContent);
 
-    // Tilføj ny farve
-   colors.push(color);
+    // Tilføj ny farve som objekt med timestamp
+    const timestamp = new Date().toISOString();
+    colors.push({ color, timestamp });
 
-    // Encode ny content
-    const newContentString = JSON.stringify(colors, null, 2);
-    const newContentBase64 = base64.encode(newContentString);
+    // Encode og commit til GitHub
+    const newContentBase64 = base64.encode(JSON.stringify(colors, null, 2));
 
-    // Lav commit via GitHub API
     const putResp = await fetch(GITHUB_API, {
       method: 'PUT',
       headers: {
@@ -98,4 +101,3 @@ app.post('/colors', async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server kører på port ${PORT}`));
-
