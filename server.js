@@ -15,7 +15,7 @@ const BRANCH = 'main';
 
 const GITHUB_API = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
 
-// GET /colors: hent farver fra GitHub og normaliser
+// GET /colors: hent farver fra GitHub
 app.get('/colors', async (req, res) => {
   try {
     const resp = await fetch(GITHUB_API + `?ref=${BRANCH}`, {
@@ -31,13 +31,16 @@ app.get('/colors', async (req, res) => {
     const content = base64.decode(data.content);
     let colors = JSON.parse(content);
 
-    // Normaliser: konverter strings til objekter
-    colors = colors.map(c => {
+    // Normaliser: konverter strings til objekter internt
+    const normalizedColors = colors.map(c => {
       if (typeof c === 'string') return { color: c, timestamp: null };
       return c;
     });
 
-    res.json(colors);
+    // For frontend kompatibilitet: returnér kun farve-strenge
+    const colorStrings = normalizedColors.map(c => c.color);
+
+    res.json(colorStrings);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Kunne ikke hente farver fra GitHub' });
@@ -65,10 +68,9 @@ app.post('/colors', async (req, res) => {
 
     const getData = await getResp.json();
     const sha = getData.sha;
-    const currentContent = base64.decode(getData.content);
-    let colors = JSON.parse(currentContent);
+    let colors = JSON.parse(base64.decode(getData.content));
 
-    // Normaliser eksisterende farver til objekter
+    // Normaliser eksisterende farver til objekter med timestamp
     colors = colors.map(c => {
       if (typeof c === 'string') return { color: c, timestamp: null };
       return c;
